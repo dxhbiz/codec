@@ -24,7 +24,7 @@ type Person struct {
 }
 
 func main()  {
-	codecInfo := Person{
+	personEncode := Person{
 		Name: "test",
 		Sex: 1,
 		Interests: []Interest{
@@ -37,14 +37,14 @@ func main()  {
 		},
 		Age: 30,
 	}
-	buf, err := codec.Encode(&codecInfo)
+	buf, err := codec.Encode(&personEncode)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(buf)
 
-	info := Person{}
-	err = codec.Decode(buf, &info)
-	fmt.Printf("%+v\n", info)
+	personDecode := Person{}
+	err = codec.Decode(buf, &personDecode)
+	fmt.Printf("%+v\n", personDecode)
 }
 ```
