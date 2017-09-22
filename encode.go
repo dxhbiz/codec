@@ -64,6 +64,8 @@ func (this *encoder) encode(rv reflect.Value) {
 		this.encodeStruct(rv)
 	case reflect.Slice:
 		this.encodeSlice(rv)
+	case reflect.String:
+		this.encodeString(rv)
 	default:
 		this.encodeValue(rv)
 	}
@@ -88,6 +90,8 @@ func (this *encoder) encodeArray(rv reflect.Value) {
 			valArr[i] = byte(rv.Index(i).Uint())
 		}
 		this.buf.Write(valArr)
+	case reflect.String:
+		this.encodeString(rv)
 	}
 }
 
@@ -104,8 +108,20 @@ func (this *encoder) encodeSlice(rv reflect.Value) {
 	this.encodeArray(rv)
 }
 
+func (this *encoder) encodeString(rv reflect.Value)  {
+	strBytes := []byte(rv.String())
+	binary.Write(this.buf, binary.LittleEndian, uint32(len(strBytes)))
+	this.buf.Write(strBytes)
+}
+
 func (this *encoder) encodeValue(rv reflect.Value) {
 	switch rv.Kind() {
+	case reflect.Bool:
+		var val uint8
+		if rv.Bool() {
+			val = uint8(1)
+		}
+		binary.Write(this.buf, binary.LittleEndian, val)
 	case reflect.Int8:
 		val := int8(rv.Int())
 		binary.Write(this.buf, binary.LittleEndian, val)

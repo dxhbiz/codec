@@ -59,6 +59,8 @@ func (this *decoder) decode(rv reflect.Value) {
 		this.decodeSlice(rv)
 	case reflect.Struct:
 		this.decodeStruct(rv)
+	case reflect.String:
+		this.decodeString(rv)
 	default:
 		this.decodeValue(rv)
 	}
@@ -79,6 +81,8 @@ func (this *decoder) decodeArray(rv reflect.Value) {
 		for i := 0; i < rvLen; i++ {
 			this.decodeStruct(rv.Index(i))
 		}
+	case reflect.String:
+		this.decodeString(rv)
 	}
 }
 
@@ -102,8 +106,24 @@ func (this *decoder) decodeStruct(rv reflect.Value) {
 	}
 }
 
+func (this *decoder) decodeString(rv reflect.Value)  {
+	var rvLen uint32
+	binary.Read(this.buf, binary.LittleEndian, &rvLen)
+	if rvLen <= 0 {
+		return
+	}
+	strBytes := this.buf.Next(int(rvLen))
+	rv.SetString(string(strBytes))
+}
+
 func (this *decoder) decodeValue(rv reflect.Value) {
 	switch rv.Kind() {
+	case reflect.Bool:
+		var val uint8
+		binary.Read(this.buf, binary.LittleEndian, &val)
+		if val > 0 {
+			rv.SetBool(true)
+		}
 	case reflect.Int8:
 		var val int8
 		binary.Read(this.buf, binary.LittleEndian, &val)
